@@ -30,21 +30,6 @@ class TelegramService {
   }
 
   setupCommands() {
-    // Handle /start command
-    this.bot.onText(/\/start/, (msg) => {
-      if (msg.chat.id !== config.CHAT_ID) {
-        return;
-      }
-
-      console.log("Start command received");
-      const chatId = msg.chat.id;
-      console.log("Chat ID:", chatId); // This helps you get your chat ID
-      this.bot.sendMessage(
-        chatId,
-        "Bot uruchomiony! Będę sprawdzać dostępność terminów co 5 minut."
-      );
-    });
-
     // Handle /check command
     this.bot.onText(/\/check/, (msg) => {
       if (msg.chat.id !== config.CHAT_ID) {
@@ -56,16 +41,6 @@ class TelegramService {
       this.bot.sendMessage(chatId, "Sprawdzam dostępność terminów...");
       // Emit an event that can be listened to by the main application
       this.emit("manualCheck", { chatId });
-    });
-
-    // Handle /status command
-    this.bot.onText(/\/status/, (msg) => {
-      if (msg.chat.id !== config.CHAT_ID) {
-        return;
-      }
-
-      const chatId = msg.chat.id;
-      this.bot.sendMessage(chatId, "Bot działa! Sprawdzam terminy co 5 minut.");
     });
   }
 

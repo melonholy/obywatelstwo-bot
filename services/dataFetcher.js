@@ -1,47 +1,53 @@
+const axios = require("axios");
 const https = require("https");
 const config = require("../config");
 
 class DataFetcher {
   constructor() {
     this.url = config.API_URL;
+
+    // Configure axios instance with SSL settings
+    this.axiosInstance = axios.create({
+      timeout: 30000, // 30 second timeout
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false // Ignore SSL certificate errors
+      }),
+      headers: {
+        'User-Agent': 'ObywatelstwBot/1.0',
+        'Accept': 'application/json'
+      }
+    });
   }
 
   async fetchData() {
     try {
       console.log("Fetching data from API...");
 
-      return new Promise((resolve, reject) => {
-        const options = {
-          rejectUnauthorized: false, // Ignore SSL certificate errors
-        };
+      const response = await this.axiosInstance.get(this.url);
 
-        https
-          .get(this.url, options, (response) => {
-            let data = "";
+      console.log("API Response:", response.data);
+      console.log(`Status: ${response.status} ${response.statusText}`);
 
-            response.on("data", (chunk) => {
-              data += chunk;
-            });
+      return response.data;
 
-            response.on("end", () => {
-              try {
-                const jsonData = JSON.parse(data);
-                console.log("API Response:", jsonData);
-                resolve(jsonData);
-              } catch (parseError) {
-                console.log("Parse error:", parseError);
-                console.log("Raw response:", data);
-                reject(parseError);
-              }
-            });
-          })
-          .on("error", (error) => {
-            console.log("Request error:", error);
-            reject(error);
-          });
-      });
     } catch (error) {
-      console.log("Fetch error:", error);
+      // Enhanced error handling with axios error structure
+      if (error.response) {
+        // Server responded with error status
+        console.log("API Error Response:", {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        console.log("Network error - no response received:", error.message);
+      } else {
+        // Something else went wrong
+        console.log("Request setup error:", error.message);
+      }
+
+      console.log("Fetch error:", error.message);
       throw error;
     }
   }
